@@ -6,6 +6,7 @@ import { GameCardsList } from "./GameCardsList/GameCardsList";
 import { ACTIVE_CARD_SIZE, CARD_SIZE, CARDS_OFFSET_X } from "./constants";
 import { usePrevious } from "./hooks/use-previous";
 import LoadingScreen from "./LoadingScreen/LoadingScreen";
+import TopBar from "./TopBar/TopBar"; 
 
 type Screenshot = {
   id: number;
@@ -103,7 +104,6 @@ function App() {
     setActive(index);
   };
 
-  // Render the fancy loading screen if games are still loading.
   if (games === null) {
     return <LoadingScreen />;
   }
@@ -127,6 +127,9 @@ function App() {
         ['--card-size']: `${CARD_SIZE}px`,
       } as Record<string, string>}
     >
+      {/* Render the top bar with icons and time */}
+      <TopBar />
+
       <CrossFader destroyOnFadeOutComplete={false} className="game-bg-container">
         <div
           key={bgImage} // re-render when the bgImage changes
