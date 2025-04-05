@@ -1,0 +1,177 @@
+:root {
+  --card-radius: 20px;
+  --card-border-width: 2px;
+  --card-border-gap: 5px;
+
+  --card-border-size: calc(var(--active-card-size) + (var(--card-border-width) + var(--card-border-gap)) * 2);
+  --card-border-offset: calc(0px - (var(--card-border-width) + var(--card-border-gap)));
+}
+
+@keyframes gameImgFadeInNext {
+  0% {
+    opacity: 0;
+    transform: translateX(40px) scale(0.99);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0px) scale(1);
+  }
+}
+
+@keyframes gameImgFadeInPrev {
+  0% {
+    opacity: 0;
+    transform: translateX(-40px) scale(0.99);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0px) scale(1);
+  }
+}
+
+@keyframes gameImgFadeOut {
+  100% {
+    opacity: 0;
+  }
+}
+
+.play-container {
+  position: absolute;
+  bottom: 800px; // Adjust this value if needed
+  left: 200px;
+  color: white;
+  font-weight: bold;
+  width: 900px; // Add a fixed width for the play container
+
+  h1 {
+    font-size: 3.2rem;
+    line-height: 1.1;
+    margin: 0;
+  }
+
+  .description {
+    font-size: 1.4rem;
+    line-height: 1.6;
+    max-width: 900px;
+    margin: 10px 0;
+    white-space: normal; // This ensures text wraps naturally
+  }
+
+  .play-btn {
+    font-family: inherit;
+    font-size: 1rem;
+    line-height: 1;
+    font-weight: bold;
+    cursor: pointer;
+    border: none;
+    margin-top: 20px;
+    width: 240px;
+    height: 50px;
+    color: white;
+    background: rgba(100, 112, 136, 0.3);
+    border-radius: 30px;
+  }
+}
+
+@keyframes bgZoomIn {
+  0% {
+    transform: scale(1);
+  }
+  100% {
+    transform: scale(1.05);
+  }
+}
+
+
+
+.game-bg-container {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  --fade-in-delay: 0s;
+  --fade-out-delay: 0.1s;
+  --fade-out-animation: gameImgFadeOut 0.3s ease;
+
+  &.next {
+    --fade-in-animation: gameImgFadeInNext 0.5s ease;
+  }
+
+  &.prev {
+    --fade-in-animation: gameImgFadeInPrev 0.5s ease;
+  }
+
+  .game-bg {
+    z-index: 100;
+    position: relative;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center; /* Changed to center for a better zoom effect */
+    width: 100%;
+    height: 100%;
+    opacity: 1;
+    /* Apply the zoom in animation over 10 seconds, then hold the final state */
+    animation: bgZoomIn 10s ease-out forwards;
+
+    &:after {
+      content: '';
+      display: block;
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(20deg, rgba(0,0,0,1), rgba(0,0,0,0));
+      z-index: 10;
+    }
+  }
+}
+
+
+@keyframes testFadeIn {
+  0% {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0px);
+  }
+}
+
+@keyframes testFadeOut {
+  0% {
+    opacity: 1;
+    transform: translateY(0px);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+}
+
+.game-card-title {
+  z-index: 50;
+  color: white;
+  font-size: 2rem;
+  white-space: nowrap;
+
+  --fade-in-animation: testFadeIn 0.5s ease;
+  --fade-out-animation: testFadeOut 0.5s ease;
+}
+
+.ps5-container {
+  width: 100vw;
+  height: 100vh;
+  background: black;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+
+.games-list-container {
+  z-index: 40;
+}
+
