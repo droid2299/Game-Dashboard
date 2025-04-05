@@ -10,7 +10,7 @@ CORS(app)
 GAME_DIR = r'C:\Games'
 
 # RAWG API settings
-RAWG_API_KEY = '2f160a46a81243388de9fe2dbd16e5eb'
+RAWG_API_KEY = ''
 RAWG_API_URL = 'https://api.rawg.io/api/games'
 
 def fetch_game_metadata(game_search_term: str) -> dict:
