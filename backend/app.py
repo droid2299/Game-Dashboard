@@ -1,7 +1,9 @@
 import os
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 import requests
 from flask_cors import CORS
+from ctransformers import AutoModelForCausalLM
+import torch
 
 app = Flask(__name__)
 CORS(app)
@@ -12,6 +14,32 @@ GAME_DIR = r'C:\Games'
 # RAWG API settings
 RAWG_API_KEY = ''
 RAWG_API_URL = 'https://api.rawg.io/api/games'
+
+# Load your pre-trained model.
+# The model and model file used here are the same as in the KDnuggets guide.
+MODEL_NAME = "TheBloke/Llama-2-7B-Chat-GGML"
+MODEL_FILE = "llama-2-7b-chat.ggmlv3.q4_K_S.bin"
+
+# Load the model on CPU.
+llm = AutoModelForCausalLM.from_pretrained(MODEL_NAME, model_file=MODEL_FILE)
+
+
+@app.route('/api/chat', methods=['POST'])
+def chat():
+    data = request.get_json()
+    query = data.get('query', '')
+    if not query:
+        return jsonify({"error": "No query provided"}), 400
+
+    # Use streaming generation from the model.
+    response_text = ""
+    # The 'stream=True' parameter streams tokens one by one.
+    for token in llm(query, stream=True):
+        response_text += token
+
+    print(response_text)
+    json_response = jsonify({"response": response_text})
+    return json_response
 
 def fetch_game_metadata(game_search_term: str) -> dict:
     try:
