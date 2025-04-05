@@ -5,6 +5,7 @@ import { CrossFader } from 'react-cross-fader';
 import { GameCardsList } from "./GameCardsList/GameCardsList";
 import { ACTIVE_CARD_SIZE, CARD_SIZE, CARDS_OFFSET_X } from "./constants";
 import { usePrevious } from "./hooks/use-previous";
+import LoadingScreen from "./LoadingScreen/LoadingScreen";
 
 type Screenshot = {
   id: number;
@@ -102,8 +103,9 @@ function App() {
     setActive(index);
   };
 
+  // Render the fancy loading screen if games are still loading.
   if (games === null) {
-    return <div>Loading games...</div>;
+    return <LoadingScreen />;
   }
 
   if (games.length === 0) {
