@@ -7,6 +7,7 @@ import { ACTIVE_CARD_SIZE, CARD_SIZE, CARDS_OFFSET_X } from "./constants";
 import { usePrevious } from "./hooks/use-previous";
 import LoadingScreen from "./LoadingScreen/LoadingScreen";
 import TopBar from "./TopBar/TopBar"; 
+import SettingsPage from "./SettingsPage/SettingsPage";
 
 type Screenshot = {
   id: number;
@@ -44,6 +45,10 @@ function App() {
   const [active, setActive] = useState(0);
   const [games, setGames] = useState<Game[] | null>(null);
   const [bgImage, setBgImage] = useState<string>("");
+
+  // new state to control whether the Settings page is shown
+  const [showSettings, setShowSettings] = useState(false);
+
   const playContainerRef = useRef<HTMLDivElement>(null);
   const prevActive = usePrevious(active);
 
@@ -77,19 +82,15 @@ function App() {
     function handleKeyDown(event: KeyboardEvent) {
       if (!games || games.length === 0) return;
       if (event.key === 'ArrowRight') {
-        setActive((prev) => {
+        setActive(prev => {
           const next = Math.min(prev + 1, games.length - 1);
-          if (next !== prev) {
-            navigateSound.play();
-          }
+          if (next !== prev) navigateSound.play();
           return next;
         });
       } else if (event.key === 'ArrowLeft') {
-        setActive((prev) => {
+        setActive(prev => {
           const next = Math.max(prev - 1, 0);
-          if (next !== prev) {
-            navigateSound.play();
-          }
+          if (next !== prev) navigateSound.play();
           return next;
         });
       }
@@ -99,19 +100,41 @@ function App() {
   }, [games]);
 
   const navigate = (index: number) => {
+
     if (index === active) return;
+
     navigateSound.play();
+
     setActive(index);
+
   };
 
+  // handle navigation to the Settings page
+  function handleSettingsClick() {
+    setShowSettings(true);
+  }
+
+  // handle going back from Settings to the main screen
+  function handleBack() {
+    setShowSettings(false);
+  }
+
+  // If games haven't loaded yet, show the fancy loading screen
   if (games === null) {
     return <LoadingScreen />;
   }
 
+  // If user wants to see the settings page, show it
+  if (showSettings) {
+    return <SettingsPage onBack={handleBack} />;
+  }
+
+  // If no games were found
   if (games.length === 0) {
     return <div>No games found.</div>;
   }
 
+  // Otherwise, show the main PS5-style UI
   const currentGame = games[active];
   const description = currentGame.description || 'No description available.';
   // Split the description into sentences using punctuation followed by whitespace as delimiter.
@@ -127,12 +150,13 @@ function App() {
         ['--card-size']: `${CARD_SIZE}px`,
       } as Record<string, string>}
     >
-      {/* Render the top bar with icons and time */}
-      <TopBar />
+      {/* Render the top bar with icons and time. 
+          Pass a click handler for the settings icon. */}
+      <TopBar onSettingsClick={handleSettingsClick} />
 
       <CrossFader destroyOnFadeOutComplete={false} className="game-bg-container">
         <div
-          key={bgImage} // re-render when the bgImage changes
+          key={bgImage}
           className="game-bg"
           style={{ backgroundImage: `url("${bgImage}")` }}
         />

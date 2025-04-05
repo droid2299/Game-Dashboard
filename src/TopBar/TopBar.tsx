@@ -6,7 +6,11 @@ function formatTime(date: Date) {
   return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
 
-const TopBar: React.FC = () => {
+interface TopBarProps {
+    onSettingsClick: () => void; // <-- new prop
+  }
+
+const TopBar: React.FC<TopBarProps> = ({ onSettingsClick }) => {
   const [currentTime, setCurrentTime] = useState<string>(formatTime(new Date()));
 
   useEffect(() => {
@@ -20,7 +24,13 @@ const TopBar: React.FC = () => {
   return (
     <div className="top-bar">
       <img src="/search-icon.svg" alt="Search" className="icon" />
-      <img src="/settings-icon.svg" alt="Settings" className="icon" />
+      {/* Trigger onSettingsClick when the settings icon is clicked */}
+      <img
+        src="/settings-icon.svg"
+        alt="Settings"
+        className="icon"
+        onClick={onSettingsClick}
+      />
       <img src="/chat-icon.svg" alt="Chat" className="icon" />
       <div className="time">{currentTime}</div>
     </div>
