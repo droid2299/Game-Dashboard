@@ -12,9 +12,35 @@ CORS(app)
 # Folder containing your game installation files
 GAME_DIR = r'C:\Games'
 
-# RAWG API settings
-RAWG_API_KEY = ''
+CONFIG_FILE = 'rawg_api_key.txt'
+RAWG_API_KEY = None  # This will be loaded dynamically
+
+
+def load_api_key():
+    global RAWG_API_KEY
+    if os.path.exists(CONFIG_FILE):
+        with open(CONFIG_FILE, 'r') as f:
+            RAWG_API_KEY = f.read().strip()
+    else:
+        RAWG_API_KEY = None
+
+load_api_key()
 RAWG_API_URL = 'https://api.rawg.io/api/games'
+
+@app.route('/check-key')
+def check_key():
+    return jsonify({'present': os.path.exists(CONFIG_FILE)})
+
+@app.route('/setup', methods=['POST'])
+def setup_api_key():
+    api_key = request.form.get('api_key', '').strip()
+    if api_key:
+        with open(CONFIG_FILE, 'w') as f:
+            f.write(api_key)
+        load_api_key()
+        return '', 204  # Return 204 No Content for success
+    return 'Missing API Key', 400
+
 
 # Load your pre-trained model.
 # The model and model file used here are the same as in the KDnuggets guide.
