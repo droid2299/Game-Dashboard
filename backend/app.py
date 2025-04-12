@@ -3,6 +3,7 @@ from flask import Flask, jsonify, request
 import requests
 from flask_cors import CORS
 from ctransformers import AutoModelForCausalLM
+from sentence_transformers import SentenceTransformer, util
 import torch
 
 app = Flask(__name__)
@@ -20,8 +21,24 @@ RAWG_API_URL = 'https://api.rawg.io/api/games'
 MODEL_NAME = "TheBloke/Llama-2-7B-Chat-GGML"
 MODEL_FILE = "llama-2-7b-chat.ggmlv3.q4_K_S.bin"
 
+model = SentenceTransformer("paraphrase-MiniLM-L3-v2", device='cpu')
 # Load the model on CPU.
 llm = AutoModelForCausalLM.from_pretrained(MODEL_NAME, model_file=MODEL_FILE)
+
+RECOMMENDATION_EXAMPLES = [
+    "suggest some games like Spiderman",
+    "recommend games similar to The Witcher",
+    "any games like Skyrim?",
+    "what should I play after Horizon?",
+    "I finished Elden Ring, what now?",
+    "need game suggestions like Control",
+    "top games like Ghost of Tsushima",
+    "games similar to GTA V",
+    "I liked God Of war: Ragnarok. What should I play next?",
+    "I played Bloodborne, which game to play next?"
+]
+
+example_embeddings = model.encode(RECOMMENDATION_EXAMPLES, convert_to_tensor=True)
 
 import re
 from typing import List
@@ -86,13 +103,52 @@ def extract_game_names(response_text: str) -> List[str]:
                     
     return list(game_names)
 
+import re
+from torch import Tensor
+
+def rewrite_query(query: str) -> str:
+    """
+    Rewrites recommendation-style queries to a more specific format.
+    Uses regex + ONNX-powered sentence similarity fallback.
+    """
+    query_clean = query.strip().lower()
+
+    # if "suggest some games similar to" in query_clean or "make sure that they are aaa games" in query_clean:
+    #     print('returning query')
+    #     return query
+
+    # Simple regex check
+    pattern = r'(?:suggest|recommend|games like|similar to)\s+(.*?)(?:[?.!]|$)'
+    match = re.search(pattern, query, re.IGNORECASE)
+    if match:
+        game_name = match.group(1).strip(' ".,:')
+        if game_name:
+            return f"Suggest some games similar to {game_name}. Make sure they are AAA titles. Respond with a numbered list of game titles only — no descriptions, no extra text, one below the other."
+
+    print(f'Falling back to semantic search')
+    # Semantic fallback
+    query_embedding: Tensor = model.encode(query, convert_to_tensor=True)
+    similarity_scores = util.pytorch_cos_sim(query_embedding, example_embeddings)[0]
+
+    print(similarity_scores.max().item())
+
+    if similarity_scores.max().item() > 0.46:  # Tune this threshold
+        return f"""{query.strip()}. Make sure they are AAA titles. Respond with a numbered list of game titles only — no descriptions, no extra text, one below the other."""
+
+    return query
+
+
+
+
 @app.route('/api/chat', methods=['POST'])
 def chat():
     data = request.get_json()
     query = data.get('query', '')
     if not query:
         return jsonify({"error": "No query provided"}), 400
-    query = query + '. Make sure that they are AAA games.'
+    query = query 
+    
+    query = rewrite_query(query)
     print(f'query = {query}')
     # Generate LLM response using streaming
     response_text = ""

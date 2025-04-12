@@ -63,7 +63,7 @@ const ChatSection: React.FC<ChatSectionProps> = ({ onBack }) => {
       {/* Header / Back button */}
       <div className="chat-header">
         <button className="back-btn" onClick={onBack}>
-          ← Back
+          ← 
         </button>
         <h2>Chat with the Game Assistant</h2>
       </div>
