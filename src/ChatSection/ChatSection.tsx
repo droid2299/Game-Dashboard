@@ -5,9 +5,15 @@ interface ChatSectionProps {
   onBack: () => void;
 }
 
+interface GameMeta {
+  game_name: string;
+  metadata: any;
+}
+
 interface Message {
   text: string;
   type: "user" | "assistant";
+  rawgData?: GameMeta[];
 }
 
 const ChatSection: React.FC<ChatSectionProps> = ({ onBack }) => {
@@ -15,7 +21,6 @@ const ChatSection: React.FC<ChatSectionProps> = ({ onBack }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Scroll to the bottom whenever messages change
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
@@ -23,13 +28,11 @@ const ChatSection: React.FC<ChatSectionProps> = ({ onBack }) => {
   const handleSend = async () => {
     if (!query.trim()) return;
 
-    // Add the user's message to the chat
     setMessages((prev) => [...prev, { text: query, type: "user" }]);
     const userQuery = query;
     setQuery("");
 
     try {
-      // Send request to server
       const res = await fetch("http://localhost:3000/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -38,14 +41,16 @@ const ChatSection: React.FC<ChatSectionProps> = ({ onBack }) => {
 
       const data = await res.json();
 
-      // Add the assistant's response
       setMessages((prev) => [
         ...prev,
-        { text: data.response, type: "assistant" },
+        {
+          text: data.response,
+          type: "assistant",
+          rawgData: Array.isArray(data.rawg_data) ? data.rawg_data : [],
+        },
       ]);
     } catch (error) {
       console.error("Error:", error);
-      // Fallback error message
       setMessages((prev) => [
         ...prev,
         { text: "Error communicating with server.", type: "assistant" },
@@ -69,9 +74,33 @@ const ChatSection: React.FC<ChatSectionProps> = ({ onBack }) => {
           <div
             key={index}
             className={`chat-message ${msg.type}`}
-            style={{ whiteSpace: "pre-wrap" }} // Preserve newlines and formatting
+            style={{ whiteSpace: "pre-wrap" }}
           >
-            {msg.text}
+            {msg.rawgData && msg.rawgData.length > 0 ? (
+              <div className="game-grid">
+                {msg.rawgData.map((game, idx) => {
+                  const meta = game.metadata || {};
+                  return (
+                    <div
+                      className="game-card"
+                      key={idx}
+                      style={{
+                        animationDelay: `${idx * 0.1}s`, // 👈 stagger delay: 0.1s per card
+                      }}
+                    >
+                      <img
+                        src={meta.background_image}
+                        alt={meta.name}
+                        className="game-image"
+                      />
+                      <div className="game-name">{meta.name}</div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <>{msg.text}</>
+            )}
           </div>
         ))}
         <div ref={messagesEndRef} />
@@ -83,6 +112,12 @@ const ChatSection: React.FC<ChatSectionProps> = ({ onBack }) => {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Enter your message..."
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault(); // Prevent newline
+              handleSend(); // Trigger send
+            }
+          }}
         />
         <button className="send-btn" onClick={handleSend}>
           Send

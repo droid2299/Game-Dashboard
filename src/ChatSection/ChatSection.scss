@@ -1,104 +1,168 @@
 .chat-section {
-    position: fixed;
-    top: 100px; /* Adjust as needed */
-    left: 20px;
-    right: 20px;
-    bottom: 20px;
-    background: rgba(0, 0, 0, 0.8);
-    color: white;
-    padding: 20px;
-    z-index: 400;
-    border-radius: 16px;
-  
-    /* Flex container to arrange header, messages, and input vertically */
+  position: fixed;
+  top: 0px;
+  left: 0px;
+  right: 0px;
+  bottom: 0px;
+  background: #1c1b23; // Dark theme base
+  color: white;
+  padding: 16px;
+  z-index: 400;
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  font-family: 'Inter', sans-serif;
+
+  .chat-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+
+    .back-btn {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 1.1rem;
+      cursor: pointer;
+      margin-right: 12px;
+    }
+
+    h2 {
+      font-weight: 600;
+      font-size: 1.2rem;
+      margin: 0;
+    }
+  }
+
+  .chat-messages {
+    flex: 1;
+    overflow-y: auto;
     display: flex;
     flex-direction: column;
-  
-    .chat-header {
-      display: flex;
-      align-items: center;
-      margin-bottom: 1rem;
-  
-      .back-btn {
-        background: none;
-        border: 1px solid white;
+    gap: 14px;
+    padding: 8px;
+
+    .chat-message {
+      max-width: 80%;
+      padding: 10px 16px;
+      border-radius: 18px;
+      line-height: 1.5;
+      font-size: 0.95rem;
+      word-break: break-word;
+      white-space: pre-wrap;
+      animation: fadeIn 0.3s ease;
+
+      &.user {
+        align-self: flex-end;
+        background-color: #5b61f6;
         color: white;
-        font-size: 1rem;
-        padding: 0.5rem 1rem;
-        cursor: pointer;
-        border-radius: 8px;
-        margin-right: 10px;
+        border-bottom-right-radius: 4px;
       }
-  
-      h2 {
-        margin: 0;
-        font-size: 1.4rem;
+
+      &.assistant {
+        align-self: flex-start;
+        background-color: #2c2a3a;
+        color: #ddd;
+        border-bottom-left-radius: 4px;
       }
-    }
-  
-    /* Scrollable messages area */
-    .chat-messages {
-      flex: 1;
-      overflow-y: auto;
-      padding-right: 10px; /* Some spacing for scrollbar */
-  
-      /* Each message bubble */
-      .chat-message {
-        max-width: 70%;
-        margin-bottom: 0.5rem;
-        padding: 0.6rem 1rem;
-        border-radius: 12px;
-        animation: slideIn 0.3s ease-in-out;
-  
-        &.user {
-          background-color: #4CAF50;
-          align-self: flex-end;
-        }
-  
-        &.assistant {
-          background-color: #333;
-          align-self: flex-start;
-        }
-      }
-  
-      @keyframes slideIn {
-        from {
+
+      .game-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+
+        .game-card {
+          width: 200px;
+          background: #423983;
+          border-radius: 16px;
+          overflow: hidden;
+          box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+          transition: transform 0.2s;
+          text-align: center;
+          color: white;
+
+          animation: cardFadeIn 0.4s ease both;
           opacity: 0;
-          transform: translateY(10px);
+
+          &:hover {
+            transform: scale(1.05);
+          }
+
+          .game-image {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+          }
+
+          .game-name {
+            font-size: 1rem;
+            font-weight: 600;
+            padding: 12px;
+          }
+
+          // Remove metadata styling if it's still present
+          .game-meta {
+            display: none;
+          }
         }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-    }
-  
-    /* Input area pinned at the bottom */
-    .chat-input {
-      display: flex;
-      align-items: center;
-      margin-top: 1rem;
-  
-      textarea {
-        flex: 1;
-        height: 50px;
-        resize: none;
-        padding: 10px;
-        font-size: 1rem;
-        margin-right: 1rem;
-        border-radius: 8px;
-        border: 1px solid #ccc;
-      }
-  
-      .send-btn {
-        padding: 10px 20px;
-        font-size: 1rem;
-        cursor: pointer;
-        border: none;
-        background: #4CAF50;
-        color: white;
-        border-radius: 8px;
       }
     }
   }
-  
+
+  .chat-input {
+    display: flex;
+    align-items: center;
+    margin-top: 12px;
+    background: #2d2c3c;
+    padding: 12px;
+    border-radius: 12px;
+
+    textarea {
+      flex: 1;
+      background: transparent;
+      color: white;
+      border: none;
+      resize: none;
+      height: 40px;
+      font-size: 1rem;
+      padding: 8px;
+      outline: none;
+    }
+
+    .send-btn {
+      background: #5b61f6;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 8px 16px;
+      margin-left: 12px;
+      cursor: pointer;
+      transition: background 0.2s ease;
+
+      &:hover {
+        background: #7077ff;
+      }
+    }
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
+@keyframes cardFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

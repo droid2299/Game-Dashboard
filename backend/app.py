@@ -92,7 +92,8 @@ def chat():
     query = data.get('query', '')
     if not query:
         return jsonify({"error": "No query provided"}), 400
-
+    query = query + '. Make sure that they are AAA games.'
+    print(f'query = {query}')
     # Generate LLM response using streaming
     response_text = ""
     for token in llm(query, stream=True):
@@ -110,7 +111,6 @@ def chat():
     rawg_data = []
     for name in game_names:
         metadata = fetch_game_metadata(name)
-        print(f"RAWG API output for '{name}':", metadata)
         rawg_data.append({
             "game_name": name,
             "metadata": metadata

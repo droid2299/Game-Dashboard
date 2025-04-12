@@ -7,6 +7,43 @@
   --card-border-offset: calc(0px - (var(--card-border-width) + var(--card-border-gap)));
 }
 
+.ps5-container.no-games {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  position: relative;
+  overflow: hidden;
+  color: white;
+  text-align: center;
+
+  .no-games-message {
+    z-index: 2;
+    padding: 2rem;
+    border-radius: 16px;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+
+    h1 {
+      font-size: 3rem;
+      margin-bottom: 0.5rem;
+    }
+
+    p {
+      font-size: 1.2rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .play-btn {
+      font-size: 1rem;
+      padding: 0.75rem 1.5rem;
+    }
+  }
+}
+
+
 @keyframes gameImgFadeInNext {
   0% {
     opacity: 0;
@@ -190,7 +227,7 @@
 .ps5-container {
   width: 100vw;
   height: 100vh;
-  background: black;
+  background: #2f265f;;
   display: flex;
   flex-direction: column;
   position: relative;

@@ -133,8 +133,33 @@ function App() {
   }
 
   if (games.length === 0) {
-    return <div>No games found.</div>;
+    return (
+      <div className="ps5-container no-games">
+        <CrossFader className="game-bg-container">
+          <div
+            key="no-games-bg"
+            className="game-bg"
+            style={{
+              backgroundImage: `url("/images/empty-library.jpg")`, // Replace with your fallback image
+              filter: 'blur(8px) brightness(0.5)',
+            }}
+          />
+        </CrossFader>
+  
+        <div className="no-games-message">
+          <h1>No Games Found</h1>
+          <p>Looks like your library is empty.</p>
+          <button
+            className="play-btn"
+            onClick={() => window.location.reload()}
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
   }
+  
 
   const currentGame = games[active];
   const description = currentGame.description || 'No description available.';
