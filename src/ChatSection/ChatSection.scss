@@ -1,0 +1,104 @@
+.chat-section {
+    position: fixed;
+    top: 100px; /* Adjust as needed */
+    left: 20px;
+    right: 20px;
+    bottom: 20px;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 20px;
+    z-index: 400;
+    border-radius: 16px;
+  
+    /* Flex container to arrange header, messages, and input vertically */
+    display: flex;
+    flex-direction: column;
+  
+    .chat-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 1rem;
+  
+      .back-btn {
+        background: none;
+        border: 1px solid white;
+        color: white;
+        font-size: 1rem;
+        padding: 0.5rem 1rem;
+        cursor: pointer;
+        border-radius: 8px;
+        margin-right: 10px;
+      }
+  
+      h2 {
+        margin: 0;
+        font-size: 1.4rem;
+      }
+    }
+  
+    /* Scrollable messages area */
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding-right: 10px; /* Some spacing for scrollbar */
+  
+      /* Each message bubble */
+      .chat-message {
+        max-width: 70%;
+        margin-bottom: 0.5rem;
+        padding: 0.6rem 1rem;
+        border-radius: 12px;
+        animation: slideIn 0.3s ease-in-out;
+  
+        &.user {
+          background-color: #4CAF50;
+          align-self: flex-end;
+        }
+  
+        &.assistant {
+          background-color: #333;
+          align-self: flex-start;
+        }
+      }
+  
+      @keyframes slideIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+    }
+  
+    /* Input area pinned at the bottom */
+    .chat-input {
+      display: flex;
+      align-items: center;
+      margin-top: 1rem;
+  
+      textarea {
+        flex: 1;
+        height: 50px;
+        resize: none;
+        padding: 10px;
+        font-size: 1rem;
+        margin-right: 1rem;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+      }
+  
+      .send-btn {
+        padding: 10px 20px;
+        font-size: 1rem;
+        cursor: pointer;
+        border: none;
+        background: #4CAF50;
+        color: white;
+        border-radius: 8px;
+      }
+    }
+  }
+  

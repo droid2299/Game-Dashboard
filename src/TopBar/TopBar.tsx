@@ -8,9 +8,10 @@ function formatTime(date: Date) {
 
 interface TopBarProps {
     onSettingsClick: () => void; // <-- new prop
+    onChatClick: () => void; 
   }
 
-const TopBar: React.FC<TopBarProps> = ({ onSettingsClick }) => {
+const TopBar: React.FC<TopBarProps> = ({ onSettingsClick, onChatClick }) => {
   const [currentTime, setCurrentTime] = useState<string>(formatTime(new Date()));
 
   useEffect(() => {
@@ -31,7 +32,12 @@ const TopBar: React.FC<TopBarProps> = ({ onSettingsClick }) => {
         className="icon"
         onClick={onSettingsClick}
       />
-      <img src="/chat-icon.svg" alt="Chat" className="icon" />
+      <img 
+        src="/chat-icon.svg" 
+        alt="Chat" 
+        className="icon" 
+        onClick={onChatClick}
+    />
       <div className="time">{currentTime}</div>
     </div>
   );

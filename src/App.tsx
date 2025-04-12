@@ -8,6 +8,7 @@ import { usePrevious } from "./hooks/use-previous";
 import LoadingScreen from "./LoadingScreen/LoadingScreen";
 import TopBar from "./TopBar/TopBar"; 
 import SettingsPage from "./SettingsPage/SettingsPage";
+import ChatSection from "./ChatSection/ChatSection";  // New chat UI component
 
 type Screenshot = {
   id: number;
@@ -45,9 +46,8 @@ function App() {
   const [active, setActive] = useState(0);
   const [games, setGames] = useState<Game[] | null>(null);
   const [bgImage, setBgImage] = useState<string>("");
-
-  // new state to control whether the Settings page is shown
   const [showSettings, setShowSettings] = useState(false);
+  const [showChat, setShowChat] = useState(false);  // New state for chat UI
 
   const playContainerRef = useRef<HTMLDivElement>(null);
   const prevActive = usePrevious(active);
@@ -100,44 +100,44 @@ function App() {
   }, [games]);
 
   const navigate = (index: number) => {
-
     if (index === active) return;
-
     navigateSound.play();
-
     setActive(index);
-
   };
 
-  // handle navigation to the Settings page
   function handleSettingsClick() {
     setShowSettings(true);
   }
 
-  // handle going back from Settings to the main screen
-  function handleBack() {
-    setShowSettings(false);
+  function handleChatClick() {
+    setShowChat(true);
   }
 
-  // If games haven't loaded yet, show the fancy loading screen
+  function handleBack() {
+    // You could decide which screen to go back to, or reset both.
+    setShowSettings(false);
+    setShowChat(false);
+  }
+
+  // Render Loading, Settings, or Chat screens if needed.
   if (games === null) {
     return <LoadingScreen />;
   }
 
-  // If user wants to see the settings page, show it
   if (showSettings) {
     return <SettingsPage onBack={handleBack} />;
   }
 
-  // If no games were found
+  if (showChat) {
+    return <ChatSection onBack={handleBack} />;
+  }
+
   if (games.length === 0) {
     return <div>No games found.</div>;
   }
 
-  // Otherwise, show the main PS5-style UI
   const currentGame = games[active];
   const description = currentGame.description || 'No description available.';
-  // Split the description into sentences using punctuation followed by whitespace as delimiter.
   const sentences = description.split(/(?<=[.!?])\s+/);
   const displayDescription =
     sentences.length > 3 ? sentences.slice(0, 3).join(' ') + ' ...' : description;
@@ -150,9 +150,8 @@ function App() {
         ['--card-size']: `${CARD_SIZE}px`,
       } as Record<string, string>}
     >
-      {/* Render the top bar with icons and time. 
-          Pass a click handler for the settings icon. */}
-      <TopBar onSettingsClick={handleSettingsClick} />
+      {/* Top bar now receives both settings and chat click handlers */}
+      <TopBar onSettingsClick={handleSettingsClick} onChatClick={handleChatClick} />
 
       <CrossFader destroyOnFadeOutComplete={false} className="game-bg-container">
         <div
@@ -162,7 +161,7 @@ function App() {
         />
       </CrossFader>
 
-      <div className="games-list-container">
+      <div className="games-list-container" style={{ marginTop: '120px' }}>
         <GameCardsList
           games={games.map(({ logo, name }) => ({ logo, name }))}
           activeIndex={active}

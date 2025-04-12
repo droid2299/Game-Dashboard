@@ -23,6 +23,68 @@ MODEL_FILE = "llama-2-7b-chat.ggmlv3.q4_K_S.bin"
 # Load the model on CPU.
 llm = AutoModelForCausalLM.from_pretrained(MODEL_NAME, model_file=MODEL_FILE)
 
+import re
+from typing import List
+
+def extract_game_names(response_text: str) -> List[str]:
+    """
+    Extract game names from LLM response text using multiple heuristics.
+    
+    This function first attempts to extract names from lines that start with 
+    numbered or bullet list markers. It then splits the line on common separators 
+    (e.g., hyphen) to isolate the game title. If no matches are found, it falls 
+    back to searching for a "Suggested Games:" section and splits that text.
+    """
+    game_names = set()  # Use set to avoid duplicates.
+    # Split the response into lines.
+    lines = response_text.splitlines()
+
+    for line in lines:
+        line = line.strip()
+        if not line:
+            continue
+
+        # Heuristic 1: Look for numbered list patterns (e.g., "1. Game Name - Description").
+        num_match = re.match(r'^\d+\s*(?:[.)])\s*(.+)$', line)
+        if num_match:
+            content = num_match.group(1)
+            # If a hyphen or dash is present, assume text before it is the title.
+            if '-' in content:
+                name_part = content.split('-', 1)[0].strip()
+            else:
+                name_part = content.strip()
+            if name_part:
+                game_names.add(name_part)
+            continue
+
+        # Heuristic 2: Look for bullet point list patterns (e.g., "- Game Name - Description" or "* Game Name: Description").
+        bullet_match = re.match(r'^[*-]\s+(.+)$', line)
+        if bullet_match:
+            content = bullet_match.group(1)
+            # Split on common separators if present.
+            if '-' in content:
+                name_part = content.split('-', 1)[0].strip()
+            elif ':' in content:
+                name_part = content.split(':', 1)[0].strip()
+            else:
+                name_part = content.strip()
+            if name_part:
+                game_names.add(name_part)
+            continue
+
+    # Fallback: Look for a section starting with "Suggested Games:" and extract comma-separated names.
+    if not game_names:
+        fallback_match = re.search(r'Suggested Games:\s*(.+)', response_text, re.IGNORECASE)
+        if fallback_match:
+            games_str = fallback_match.group(1)
+            # Attempt to split by comma or newline in case of multiple entries.
+            parts = re.split(r',|\n', games_str)
+            for part in parts:
+                name = part.strip().strip('"').strip()
+                if name:
+                    game_names.add(name)
+                    
+    return list(game_names)
 
 @app.route('/api/chat', methods=['POST'])
 def chat():
@@ -31,14 +93,34 @@ def chat():
     if not query:
         return jsonify({"error": "No query provided"}), 400
 
-    # Use streaming generation from the model.
+    # Generate LLM response using streaming
     response_text = ""
-    # The 'stream=True' parameter streams tokens one by one.
     for token in llm(query, stream=True):
         response_text += token
 
+    # Print the LLM response for debugging
+    print("LLM Response:")
     print(response_text)
-    json_response = jsonify({"response": response_text})
+
+    # Extract game names from the LLM response
+    game_names = extract_game_names(response_text)
+    print("Extracted game names:", game_names)
+
+    # Retrieve RAWG API metadata for each extracted game name
+    rawg_data = []
+    for name in game_names:
+        metadata = fetch_game_metadata(name)
+        print(f"RAWG API output for '{name}':", metadata)
+        rawg_data.append({
+            "game_name": name,
+            "metadata": metadata
+        })
+
+    # Return both the LLM response and the RAWG API data
+    json_response = jsonify({
+        "response": response_text,
+        "rawg_data": rawg_data
+    })
     return json_response
 
 def fetch_game_metadata(game_search_term: str) -> dict:
