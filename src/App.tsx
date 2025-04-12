@@ -3,17 +3,15 @@ import { useEffect, useRef, useState } from 'react';
 import { Howl } from 'howler';
 import { CrossFader } from 'react-cross-fader';
 import { GameCardsList } from "./GameCardsList/GameCardsList";
-import { ACTIVE_CARD_SIZE, CARD_SIZE, CARDS_OFFSET_X } from "./constants";
+import { ACTIVE_CARD_SIZE, CARD_SIZE } from "./constants";
 import { usePrevious } from "./hooks/use-previous";
 import LoadingScreen from "./LoadingScreen/LoadingScreen";
-import TopBar from "./TopBar/TopBar"; 
+import TopBar from "./TopBar/TopBar";
 import SettingsPage from "./SettingsPage/SettingsPage";
-import ChatSection from "./ChatSection/ChatSection";  // New chat UI component
+import ChatSection from "./ChatSection/ChatSection";
+import ApiKeySetup from './APIKeySetup/APIKeySetup';
 
-type Screenshot = {
-  id: number;
-  image: string;
-};
+type Screenshot = { id: number; image: string; };
 
 type Game = {
   name: string;
@@ -26,46 +24,52 @@ type Game = {
   screenshots?: Screenshot[];
 };
 
-const navigateSound = new Howl({
-  src: ['/sounds/menu.mp3'],
-  volume: 0.3,
-});
-
-const loadSound = new Howl({
-  src: ['/sounds/home_menu_load.mp3'],
-  volume: 0.3,
-});
-
-const backgroundMusic = new Howl({
-  src: ['/sounds/background.mp3'],
-  loop: true,
-  volume: 0.2,
-});
+const navigateSound = new Howl({ src: ['/sounds/menu.mp3'], volume: 0.3 });
+const loadSound = new Howl({ src: ['/sounds/home_menu_load.mp3'], volume: 0.3 });
+const backgroundMusic = new Howl({ src: ['/sounds/background.mp3'], loop: true, volume: 0.2 });
 
 function App() {
   const [active, setActive] = useState(0);
   const [games, setGames] = useState<Game[] | null>(null);
   const [bgImage, setBgImage] = useState<string>("");
   const [showSettings, setShowSettings] = useState(false);
-  const [showChat, setShowChat] = useState(false);  // New state for chat UI
+  const [showChat, setShowChat] = useState(false);
+  const [apiKeySet, setApiKeySet] = useState<boolean | null>(null);
 
   const playContainerRef = useRef<HTMLDivElement>(null);
   const prevActive = usePrevious(active);
 
+  const checkApiKey = async () => {
+    try {
+      const res = await fetch("http://localhost:3000/check-key");
+      const data = await res.json();
+      setApiKeySet(data.present);
+    } catch (err) {
+      setApiKeySet(false);
+    }
+  };
+
   useEffect(() => {
+    checkApiKey();
+   }, []);
+
+  // Step 2: Fetch games only after API key is confirmed
+  useEffect(() => {
+    if (apiKeySet !== true) return;
+
     loadSound.play();
     backgroundMusic.play();
 
-    fetch('http://127.0.0.1:3000/api/games')
-      .then(response => response.json())
-      .then(data => setGames(data))
-      .catch(err => {
-        console.error("Error fetching games:", err);
+    fetch('http://localhost:3000/api/games')
+      .then((res) => res.json())
+      .then((data) => setGames(data))
+      .catch((err) => {
+        console.error("Failed to fetch games:", err);
         setGames([]);
       });
-  }, []);
+  }, [apiKeySet]);
 
-  // Update background image when active card changes.
+  // Step 3: Background image updates with active game
   useEffect(() => {
     if (!games || games.length === 0) return;
     const game = games[active];
@@ -77,7 +81,7 @@ function App() {
     }
   }, [active, games]);
 
-  // Listen for arrow key events to navigate the cards.
+  // Step 4: Arrow key navigation
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
       if (!games || games.length === 0) return;
@@ -105,34 +109,35 @@ function App() {
     setActive(index);
   };
 
-  function handleSettingsClick() {
-    setShowSettings(true);
-  }
-
-  function handleChatClick() {
-    setShowChat(true);
-  }
-
-  function handleBack() {
-    // You could decide which screen to go back to, or reset both.
+  const handleSettingsClick = () => setShowSettings(true);
+  const handleChatClick = () => setShowChat(true);
+  const handleBack = () => {
     setShowSettings(false);
     setShowChat(false);
-  }
+  };
 
-  // Render Loading, Settings, or Chat screens if needed.
-  if (games === null) {
-    return <LoadingScreen />;
-  }
+  // 1. Loading while checking API key
+  if (apiKeySet === null || (apiKeySet === true && games === null)) return <LoadingScreen />;
 
-  if (showSettings) {
-    return <SettingsPage onBack={handleBack} />;
-  }
+  // API key not set
+  if (!apiKeySet) {
+    return (
+      <ApiKeySetup
+        onApiKeySaved={() => {
+          checkApiKey(); // 🔁 recheck after saving
+        }}
+      />
+    );
+ }
 
-  if (showChat) {
-    return <ChatSection onBack={handleBack} />;
-  }
+  // Settings page
+  if (showSettings) return <SettingsPage onBack={handleBack} />;
 
-  if (games.length === 0) {
+  // Chat page
+  if (showChat) return <ChatSection onBack={handleBack} />;
+
+  // No games
+  if (games!.length === 0) {
     return (
       <div className="ps5-container no-games">
         <CrossFader className="game-bg-container">
@@ -140,19 +145,16 @@ function App() {
             key="no-games-bg"
             className="game-bg"
             style={{
-              backgroundImage: `url("/images/empty-library.jpg")`, // Replace with your fallback image
+              backgroundImage: `url("/images/empty-library.jpg")`,
               filter: 'blur(8px) brightness(0.5)',
             }}
           />
         </CrossFader>
-  
+
         <div className="no-games-message">
           <h1>No Games Found</h1>
           <p>Looks like your library is empty.</p>
-          <button
-            className="play-btn"
-            onClick={() => window.location.reload()}
-          >
+          <button className="play-btn" onClick={() => window.location.reload()}>
             Retry
           </button>
         </div>
@@ -161,7 +163,7 @@ function App() {
   }
   
 
-  const currentGame = games[active];
+  const currentGame = games![active];
   const description = currentGame.description || 'No description available.';
   const sentences = description.split(/(?<=[.!?])\s+/);
   const displayDescription =
@@ -188,7 +190,7 @@ function App() {
 
       <div className="games-list-container" style={{ marginTop: '120px' }}>
         <GameCardsList
-          games={games.map(({ logo, name }) => ({ logo, name }))}
+          games={games!.map(({ logo, name }) => ({ logo, name }))}
           activeIndex={active}
           onActiveIndexChange={navigate}
         />
