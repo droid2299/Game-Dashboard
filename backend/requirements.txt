@@ -1,0 +1,5 @@
+flask
+ctransformers
+sentence-transformer
+torch
+flask-cors
