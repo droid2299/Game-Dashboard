@@ -4,7 +4,7 @@ import './SettingsPage.scss';
 const settingsItems = [
   "User's Guide, Health and Safety, and Other Information",
   "Accessibility",
-  "Network",
+  "Networks",
   "Users and Accounts",
   "Family and Parental Controls",
   "System",
