@@ -9,7 +9,7 @@ const settingsItems = [
   "Family and Parental Controls",
   "System",
   "Storage",
-  "Sound",
+  "Sounds",
   "Screen and Video"
 ];
 
